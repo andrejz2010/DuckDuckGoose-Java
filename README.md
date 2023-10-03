@@ -22,7 +22,7 @@
 1. Run this command to run your code:  
    `./gradlew bootRun`
 
-1. The app should now be available at https://localhost:8080
+1. The app should now be available at http://localhost:8080
 
 ## Setting up PostgreSQL
 
