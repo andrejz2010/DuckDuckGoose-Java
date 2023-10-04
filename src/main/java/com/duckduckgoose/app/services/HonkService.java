@@ -28,6 +28,10 @@ public class HonkService {
 
     public void createHonk(Member author, HonkRequest request) throws ValidationException {
         Honk honk = new Honk(author, request.getContent());
+        honkRepository.save(honk);
+
+
+
     }
 
     public Page<Honk> getMemberHonks(Member author, String search, Pageable pageable) {
