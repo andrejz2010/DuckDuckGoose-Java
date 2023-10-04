@@ -12,6 +12,8 @@ public interface HonkRepository extends JpaRepository<Honk, Long> {
 
     Page<Honk> findAllByOrderByTimestampDesc(Pageable pageable);
 
+//    void addHonk(Honk honk);
+
     Page<Honk> findByContentContainingOrderByTimestampDesc(String search, Pageable pageable);
 
     Page<Honk> findByAuthorOrderByTimestampDesc(Member author, Pageable pageable);

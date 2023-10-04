@@ -68,8 +68,14 @@ public class MemberController {
         Pageable pageRequest = PaginationHelper.getPageRequest(page);
         Page<Honk> honks = honkService.getMemberHonks(member, search, pageRequest);
 
-        MemberViewModel memberViewModel = new MemberViewModel(member, honks, search);
-        return new ModelAndView("member", "model", memberViewModel);
+        if (member==null){
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "entity not found"
+            );
+        }else {
+            MemberViewModel memberViewModel = new MemberViewModel(member, honks, search);
+            return new ModelAndView("member", "model", memberViewModel);
+        }
     }
 
     @RequestMapping(value = "/member/{username}/follow", method = RequestMethod.POST)

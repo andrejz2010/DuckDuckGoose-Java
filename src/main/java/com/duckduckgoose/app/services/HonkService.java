@@ -50,10 +50,13 @@ public class HonkService {
             return honkRepository.findByContentContainingAndAuthorInOrderByTimestampDesc(search, followedMembers, pageable);
         }
     }
-    
+
     public void createHonk(Member author, HonkRequest request) throws ValidationException {
         Honk honk = new Honk(author, request.getContent());
+        honkRepository.save(honk);
+
     }
+
 
 
 }
