@@ -34,8 +34,31 @@ public class MemberController {
         this.honkService = honkService;
     }
 
-    @RequestMapping(value = "/member/{username}", method = RequestMethod.GET)
+    @RequestMapping(value = "/members", method = RequestMethod.GET)
+    public ModelAndView getMembersPage(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam (value = "page", required = false) Integer page,
+            RedirectAttributes redirectAttributes
+    ) {
+        Page<Member> members;
+        Pageable pageRequest = PaginationHelper.getPageRequest(page);
+        if (filter != null && filter.equals("followedUsers")) {
+            if (!AuthHelper.isAuthenticated()) {
+                redirectAttributes.addFlashAttribute("redirected", true);
+                return new ModelAndView("redirect:/login");
+            }
+            Member followerMember = AuthHelper.getAuthenticatedMember();
+            members = memberService.getFollowedMembers(followerMember, search, pageRequest);
+        } else {
+            members = memberService.getMembers(search, pageRequest);
+        }
 
+        MembersViewModel membersViewModel = new MembersViewModel(members, search, filter);
+        return new ModelAndView("members", "model", membersViewModel);
+    }
+
+    @RequestMapping(value = "/member/{username}", method = RequestMethod.GET)
     public ModelAndView getMemberPage(
             @PathVariable String username,
             @RequestParam(value = "search", required = false) String search,
@@ -44,29 +67,30 @@ public class MemberController {
         Member member = memberService.getMemberByUsername(username);
         Pageable pageRequest = PaginationHelper.getPageRequest(page);
         Page<Honk> honks = honkService.getMemberHonks(member, search, pageRequest);
-if (member==null){
-    throw new ResponseStatusException(
-            HttpStatus.NOT_FOUND, "entity not found"
-    );
-}else {
-    MemberViewModel memberViewModel = new MemberViewModel(member, honks, search);
-    return new ModelAndView("member", "model", memberViewModel);
-}
+
+        if (member==null){
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "entity not found"
+            );
+        }else {
+            MemberViewModel memberViewModel = new MemberViewModel(member, honks, search);
+            return new ModelAndView("member", "model", memberViewModel);
+        }
     }
 
-    @RequestMapping(value = "/members", method = RequestMethod.GET)
-    public ModelAndView getMembersPage(
-            @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "filter", required = false) String filter,
-            @RequestParam (value = "page", required = false) Integer page
-    ) {
-        Page<Member> members;
-        Pageable pageRequest = PaginationHelper.getPageRequest(page);
-        members = memberService.getMembers(search, pageRequest);
-
-
-        MembersViewModel membersViewModel = new MembersViewModel(members, search, filter);
-        return new ModelAndView("members", "model", membersViewModel);
+    @RequestMapping(value = "/member/{username}/follow", method = RequestMethod.POST)
+    public ModelAndView followMember(@PathVariable String username) {
+        Member followerMember = AuthHelper.getAuthenticatedMember();
+        Member followedMember = memberService.getMemberByUsername(username);
+        memberService.addFollower(followerMember, followedMember);
+        return new ModelAndView("redirect:/member/" + username);
     }
 
+    @RequestMapping(value = "/member/{username}/unfollow", method = RequestMethod.POST)
+    public ModelAndView unfollowMember(@PathVariable String username) {
+        Member followerMember = AuthHelper.getAuthenticatedMember();
+        Member followedMember = memberService.getMemberByUsername(username);
+        memberService.removeFollower(followerMember, followedMember);
+        return new ModelAndView("redirect:/member/" + username);
+    }
 }
